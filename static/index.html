@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width" />
     <meta name="license" content="
         Copyright 2013 Google, Abram Hindle
-        
+        Copyright 2023 Google, Hua Wang
         Licensed under the Apache License, Version 2.0 (the "License");
         you may not use this file except in compliance with the License.
         You may obtain a copy of the License at
@@ -54,6 +54,7 @@ function drawCircle(context,entity) {
         //moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
+        // here
         arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
         stroke();                                
     }
@@ -121,10 +122,46 @@ function getPosition(e) {
 	}
 }
 
+//copy from code of Assignment4
+function sendJSONXMLHTTPRequest(url, objects, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState==4) {
+            try {
+                if (xhr.status==200) {
+                    //XXX: parse some JSON from the request!
+                    var data = JSON.parse(this.responseText);
+                    //XXX: Pass the data to the callback!
+                    callback(data);
+                }
+            }
+            catch(e) {
+                alert('Error: ' + e.name);
+            }
+        }
+    };
+    //XXX: POST to a URL
+    xhr.open("POST", url, true);
+    //XXX: set the mimetype and the accept headers !
+    // Remember to use application/json !
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.send(JSON.stringify(objects));
+}
+
+function callback(data) {
+    Object.assign(world, data)
+    drawNextFrame()
+}
+
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just modified!
+    var obj = {};
+    obj[entity] = data;
+    socket.send(JSON.stringify(obj));
+    sendJSONXMLHTTPRequest('http://' + host + '/entity/' + entity, data, callback);
 }
 var counter = 0;
 function addEntityWithoutName(data) {
@@ -254,6 +291,7 @@ function wsSetup() {
     socket = new WebSocket(url);
     socket.onopen = function() {
         //XXX: TODO What are you going to do here?
+        sendJSONXMLHTTPRequest('http://' + host + '/world', null, callback);
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
@@ -261,7 +299,12 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here?
+            var message = JSON.parse(msg.data);
+ 			  for (m in message) {
+ 			    world[m] = message[m];
+ 			}
+            drawNextFrame();            
         } catch (e) {
             alert("socket on message: " + e);
         }
