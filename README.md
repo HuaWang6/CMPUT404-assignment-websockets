@@ -22,9 +22,9 @@ References
 
 Some codes I used in Assignment5 are from Assignment4
 
-* https://github.com/abramhindle/WebSocketsExamples
-* https://www.tutorialspoint.com/websockets/websockets_opening_connections.htm
-* https://github.com/HuaWang6/CMPUT404-assignment-ajax
+https://github.com/abramhindle/WebSocketsExamples
+https://www.tutorialspoint.com/websockets/websockets_opening_connections.htm
+https://github.com/HuaWang6/CMPUT404-assignment-ajax
 
 Contributors / Licensing
 ========================
